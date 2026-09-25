@@ -1,46 +1,45 @@
-# Contributing to the OpenAI Agents Python SDK
+# 客服应用开发说明
 
-## Contribution policy
+本分支以 `examples/support_app/` 为核心，日常开发遵循本文件与 [AGENTS.md](AGENTS.md)，不继承上游的强制多阶段审查和发布流程。
 
-We welcome bug reports, feature requests, minimal reproductions, and root-cause analysis through [GitHub issues](https://github.com/openai/openai-agents-python/issues).
+## 开发步骤
 
-**Pull requests are limited to repository collaborators. We do not accept pull requests from non-collaborators**, including documentation or example changes. If you are not a collaborator, please open an issue instead of preparing a pull request. Include the affected version, expected and actual behavior, and a small, sanitized reproduction when applicable.
+1. 按 [README.md](README.md) 准备环境，激活 `.venv`。
+2. 明确用户行为与数据边界，阅读现有代码和差异。
+3. 在对应应用模块中实现修改，为行为变更补充回归测试。
+4. 执行相关检查，复核差异和说明文档。
+5. 按用户授权提交或推送，报告实际验证结果。
 
-Report suspected security vulnerabilities privately as described in [SECURITY.md](SECURITY.md), rather than in issues or pull requests.
+## 应用检查
 
-The development and pull request instructions below are for maintainers and repository collaborators.
+```sh
+python -m unittest examples.support_app.test_support -v
+ruff check examples/support_app
+ruff format --check examples/support_app
+git diff --check
+```
 
-For suspected vulnerabilities, follow [SECURITY.md](SECURITY.md). Keep undisclosed security reports and fixes out of public issues, discussions, and pull requests until disclosure is coordinated.
+离线测试不需要完整数据或 API Key。导入数据后可运行 `python -m examples.support_app --demo` 验证本地查询。在线交互使用用户终端中的密钥；没有执行时注明“在线未验证”。格式修复可用 `ruff format examples/support_app`，然后复查差异。
 
-## Development workflow
+## SDK 修改
 
-Read [AGENTS.md](AGENTS.md) for the repository's scope, compatibility, review, and verification requirements. Use Python 3.10 or newer, `uv`, and `make`. Install the development dependencies with `make sync`, and run Python commands through `uv run`.
+先运行受影响测试，较大修改再运行：
 
-Keep changes focused on the agreed outcome. Add regression coverage for changed behavior and follow [tests/README.md](tests/README.md) for test execution. Run focused checks while developing, then the applicable final checks described in [AGENTS.md](AGENTS.md#testing--automated-checks). Use the [pull request template](.github/PULL_REQUEST_TEMPLATE/pull_request_template.md) to explain the problem, change, and validation. Documentation changes follow the repository's verification tiers and release-timing rules.
+```sh
+make format-check
+make lint
+make typecheck
+make tests
+```
 
-## Security checklist
+需要完整可选依赖时使用 `make sync`；之后如需导入数据，重新安装 `examples/support_app/requirements-data.txt`。环境权限导致的失败应明确记录，不应通过删除测试掩盖。
 
-### Credentials and sensitive data
+## 复核重点
 
-- Use synthetic fixtures and obvious placeholder credentials in tests, examples, snapshots, and documentation. Never commit real API keys, tokens, cookies, signing keys, customer data, private prompts or responses, tool payloads, or recordings.
-- Provide credentials for explicitly authorized live tests through the approved environment or secret store. Use the minimum necessary access and keep live credentials out of untrusted contributor runs. Do not embed credentials in browser code, commands, URLs, or generated artifacts.
-- Inspect diffs and attachments for sensitive data before sharing them. Include logs, exceptions and their chained context, tracebacks, telemetry, session exports, files, and audio in that check. Do not assume a tracing redaction setting sanitizes every channel.
-- If a credential is exposed, stop sharing it, report it privately through [SECURITY.md](SECURITY.md), and have its owner revoke or rotate it. Deleting the visible value alone does not invalidate the credential.
+检查客户隔离、分页、十进制金额、取消记录解释、工单确认与去重、导入回滚及会话持久化。新政策必须标明是否为练习政策；不能以历史数据承诺实时服务。
 
-### Dependencies and downloaded tools
+文档修改核对事实、链接、命令和差异即可，不要求完整 SDK 测试、固定审查轮数、状态文件或 PR 草稿。上游 `.agents/` 辅助脚本保留用于工具链兼容，不自动触发旧流程。
 
-- Justify new dependencies and review the package source, maintenance history, install or build hooks, transitive dependencies, and lockfile changes. Keep dependency changes scoped and reproducible.
-- Assess dependency alerts for the affected runtime, optional integration, development, example, CI, or publishing path. Record reachability and impact instead of dismissing an alert solely because the dependency is not shipped to users.
-- For dependency-update automation, apply a documented release-age cooldown to ordinary version updates while allowing security updates immediately. Review security updates promptly; they still require appropriate review and checks. Do not claim a cooldown or update ecosystem is configured without checking the actual configuration.
-- Escalate critical or actively exploited findings immediately through the private security process. Record any proposed exception with an owner, mitigation, approving authority, and expiry; an unapproved exception is not an accepted risk.
+## 版本控制
 
-### CI and publishing
-
-- Treat pull request content, branch names, artifacts, and external downloads as untrusted input. Do not execute contributor-controlled code in a privileged workflow or expose secrets to it, including through `pull_request_target` or a later workflow that consumes contributor artifacts.
-- Use explicit, least-privilege workflow and job permissions, review third-party actions, and pin actions to full commit SHAs. Grant write or `id-token` permissions only to jobs that require them. Do not bypass required reviews, secret protections, or security checks to make CI pass.
-- Changes to credentials, redaction, requests and redirects, parsing, uploads, tool approvals, MCP, persisted state, sandbox access, dependencies, CI, or releases need focused security review and regression coverage appropriate to the affected boundary.
-- Release approval under the shared SDK policy requires CODEOWNERS coverage of release workflows and publishing configuration, required code-owner review of release pull requests, and passing required checks. A separate environment reviewer gate is not required by that policy. Follow any protections currently configured for this repository; this guidance does not authorize removing or bypassing them.
-- Preserve the existing PyPI OIDC publishing flow, release-source validation, and artifact handoff in [the publishing workflow](.github/workflows/publish.yml). Do not replace short-lived trusted publishing with long-lived registry tokens or weaken provenance checks for convenience. Follow the [maintainer release procedure](.github/RELEASING.md).
-- When assessing publishing readiness, verify the repository-specific registry binding, artifact provenance, publisher access, and recovery arrangements. Workflow configuration alone does not prove those controls are in place.
-
-These requirements describe how to contribute safely. Their presence does not certify repository settings, establish a scan baseline, or close existing security findings. Maintainers must track verified gaps and approved exceptions separately from proposed work.
+仅提交源码、说明和必要配置。密钥、下载数据、数据库和聊天记录不提交；公开数据保留来源及许可。推送须在用户授权范围内进行。SDK 的安全报告说明保留在 [SECURITY.md](SECURITY.md)，不要在公开 issue 中发布密钥或未披露漏洞。

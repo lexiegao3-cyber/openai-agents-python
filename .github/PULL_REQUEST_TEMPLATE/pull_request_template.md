@@ -1,19 +1,14 @@
-### Summary
+## 问题与改动
 
-<!-- Please give a short summary of the change and the problem this solves. -->
+描述问题、修改后的行为与范围。
 
-### Test plan
+## 验证
 
-<!-- Please explain how this was tested -->
-<!-- If verification could not complete because of local environment setup, include the failing command, the missing dependency, and why it is unrelated to this PR. Leave the pass checkbox below unchecked until all verification steps pass. -->
+列出实际执行的检查和结果，说明未运行的在线测试及环境限制。
 
-### Issue number
+## 数据与行为边界
 
-<!-- For example: "Closes #1234" -->
+涉及订单、会话或工单时，说明客户隔离、历史数据解释、人工确认与兼容性。
 
-### Checks
-
-- [ ] I've added new tests, if relevant
-- [ ] I've run `.agents/skills/code-change-verification/scripts/run.sh`
-- [ ] I've confirmed all verification steps pass
-- [ ] If using Codex, I've run `/review` before submitting this PR
+- [ ] 提交内容不包含密钥、数据库、下载数据或聊天记录。
+- [ ] 使用方式变化已更新说明。

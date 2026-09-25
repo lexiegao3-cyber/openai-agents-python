@@ -1,188 +1,93 @@
-# OpenAI Agents SDK [![PyPI](https://img.shields.io/pypi/v/openai-agents?label=pypi%20package)](https://pypi.org/project/openai-agents/)
+# Customer Support Agent 客服学习应用
 
-The OpenAI Agents SDK is a lightweight yet powerful framework for building multi-agent workflows. It is provider-agnostic, supporting the OpenAI Responses and Chat Completions APIs, as well as 100+ other LLMs.
+基于 OpenAI Agents Python SDK 的英文终端客服应用。通过工具查询 SQLite 中的真实公开历史交易，由 OpenAI 模型解释结果，并提供会话记忆和人工确认后创建本地练习工单的流程。
 
-<img src="https://cdn.openai.com/API/docs/images/orchestration.png" alt="Image of the Agents Tracing UI" style="max-height: 803px;">
+这是 [OpenAI Agents Python](https://github.com/openai/openai-agents-python) 的学习分支。客服代码位于 `examples/support_app/`；`src/agents/` 和其他示例保留上游 SDK 内容。本应用不是可直接上线的电商客服系统。
 
-> [!NOTE]
-> Looking for the JavaScript/TypeScript version? Check out [Agents SDK JS/TS](https://github.com/openai/openai-agents-js).
+## 功能和边界
 
-### Core concepts:
+- 按客户分页列出历史发票，查询商品、数量、单价、金额与开票时间。
+- 模型用英文回答，依据工具结果，不编造物流和预计送达时间。
+- 按客户及会话名称保存聊天，支持继续对话或清空当前会话。
+- 创建工单前显示具体内容，要求终端输入 `yes`；工单仅保存到本机。
+- 支持不调用模型的离线数据查看与单元测试。
 
-1. [**Agents**](https://openai.github.io/openai-agents-python/agents): LLMs configured with instructions, tools, guardrails, and handoffs
-1. [**Sandbox agents**](https://openai.github.io/openai-agents-python/sandbox_agents): Agents preconfigured to work with a container to perform work over long time horizons.
-1. [**Realtime agents**](https://openai.github.io/openai-agents-python/realtime/quickstart/): Build powerful voice agents with `gpt-realtime-2.1` and full agent features
-1. [**Voice agents**](https://openai.github.io/openai-agents-python/voice/quickstart/): Build voice pipelines that combine speech-to-text, an agent workflow, and text-to-speech
-1. **[Agents as tools](https://openai.github.io/openai-agents-python/tools/#agents-as-tools) / [Handoffs](https://openai.github.io/openai-agents-python/handoffs/)**: Delegating to other agents for specific tasks
-1. [**Tools**](https://openai.github.io/openai-agents-python/tools/): Various Tools let agents take actions (functions, MCP, hosted tools)
-1. [**Guardrails**](https://openai.github.io/openai-agents-python/guardrails/): Configurable safety checks for input and output validation
-1. [**Human in the loop**](https://openai.github.io/openai-agents-python/human_in_the_loop/): Built-in mechanisms for involving humans across agent runs
-1. [**Sessions**](https://openai.github.io/openai-agents-python/sessions/): Automatic conversation history management across agent runs
-1. [**Tracing**](https://openai.github.io/openai-agents-python/tracing/): Built-in tracking of agent runs, allowing you to view, debug and optimize your workflows
+数据来自 [UCI Online Retail](https://archive.ics.uci.edu/dataset/352/online+retail)，涵盖 2010-12-01 至 2011-12-09 的历史交易，币种 GBP。它不是实时订单库，没有物流、付款结算或商家现行政策。取消记录不能证明退款成功。政策文件是虚构练习政策，工单不会通知真实商家。
 
-Explore the [examples](https://github.com/openai/openai-agents-python/tree/main/examples) directory to see the SDK in action, and read our [documentation](https://openai.github.io/openai-agents-python/) for more details.
+数据引用：Chen, D. (2015). *Online Retail*. UCI Machine Learning Repository. [DOI: 10.24432/C5BW33](https://doi.org/10.24432/C5BW33)，许可为 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)。本应用将工作簿转换为按客户查询的 SQLite 表；转换细节见[应用说明](examples/support_app/README.md)。
 
-## Get started
+## 安装与离线运行
 
-To get started, set up your Python environment (Python 3.10 or newer required), and then install OpenAI Agents SDK package.
+需要 Python 3.10+、Git 和 uv。已克隆仓库的用户从现有目录开始，不必重复克隆。
 
-### venv
-
-```bash
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-pip install openai-agents
+```sh
+git clone https://github.com/lexiegao3-cyber/openai-agents-python.git
+cd openai-agents-python
+uv sync --group dev
+source .venv/bin/activate
+uv pip install -r examples/support_app/requirements-data.txt
+python -m examples.support_app.import_data
+python -m examples.support_app --demo
 ```
 
-For voice support, install with the optional `voice` group: `pip install 'openai-agents[voice]'`. For Redis session support, install with the optional `redis` group: `pip install 'openai-agents[redis]'`.
+导入器下载约 23 MB 的官方归档，复用已经完成的数据库，不覆盖订单和工单。后续 `uv sync` 可能移除导入专用依赖；需要再次导入时重新安装 `requirements-data.txt`。
 
-### uv
+## 启动英文客服
 
-If you're familiar with [uv](https://docs.astral.sh/uv/), installing the package would be even easier:
+在同一个终端设置 `OPENAI_API_KEY`。macOS 默认 zsh 可使用隐藏输入，粘贴密钥后按回车：
 
-```bash
-uv init
-uv add openai-agents
+```zsh
+read -s 'OPENAI_API_KEY?OpenAI API Key: '
+export OPENAI_API_KEY
+printf '\n'
+python -m examples.support_app
 ```
 
-For voice support, install with the optional `voice` group: `uv add 'openai-agents[voice]'`. For Redis session support, install with the optional `redis` group: `uv add 'openai-agents[redis]'`.
+密钥不要写入代码或提交 Git。在线回答需要可用 API 额度；离线查看与单元测试不需要。在线模式会将聊天和工具结果发给 OpenAI。本应用关闭 tracing，但仍在本地保存对话。
 
-## Run your first agents
+默认匿名客户为 `12347`。可尝试：
 
-The SDK supports four primary ways to run agents. Set the `OPENAI_API_KEY` environment variable before running any of these examples.
-
-### Run a text agent
-
-Use a text `Agent` for workflows that do not need a persistent realtime connection or a sandbox workspace.
-
-```python
-from agents import Agent, Runner
-
-agent = Agent(name="Assistant", instructions="You are a helpful assistant")
-
-result = Runner.run_sync(agent, "Write a haiku about recursion in programming.")
-print(result.final_output)
-
-# Code within the code,
-# Functions calling themselves,
-# Infinite loop's dance.
+```text
+List my orders.
+What products and quantities are in invoice 581180?
+What is the total recorded amount in GBP?
+Do you have a delivery date?
+Create a support ticket about this invoice.
+List my tickets.
 ```
 
-(_For Jupyter notebook users, see [hello_world_jupyter.ipynb](https://github.com/openai/openai-agents-python/blob/main/examples/basic/hello_world_jupyter.ipynb)_)
+确认工单时输入 `yes` 才保存，其他输入取消。`exit` 退出；`/new` 清空当前会话。继续命名会话：
 
-### Run a sandbox agent
-
-Use a [`SandboxAgent`](https://openai.github.io/openai-agents-python/sandbox_agents) when the agent needs to inspect files, run commands, apply patches, or preserve workspace state across longer tasks.
-
-This example uses `UnixLocalSandboxClient`, which is supported on macOS and Linux. On Windows, use `DockerSandboxClient` with the `openai-agents[docker]` extra or a hosted sandbox client instead; see [Sandbox clients](https://openai.github.io/openai-agents-python/sandbox/clients/) for setup details.
-
-```python
-from agents import Runner
-from agents.run import RunConfig
-from agents.sandbox import Manifest, SandboxAgent, SandboxRunConfig
-from agents.sandbox.entries import GitRepo
-from agents.sandbox.sandboxes import UnixLocalSandboxClient
-
-agent = SandboxAgent(
-    name="Workspace Assistant",
-    instructions="Inspect the sandbox workspace before answering.",
-    default_manifest=Manifest(entries={"repo": GitRepo(repo="openai/openai-agents-python", ref="main")}),
-)
-
-result = Runner.run_sync(
-    agent,
-    "Inspect the repo README and summarize what this project does.",
-    run_config=RunConfig(sandbox=SandboxRunConfig(client=UnixLocalSandboxClient())),
-)
-print(result.final_output)
+```sh
+python -m examples.support_app --customer 12347 --session learning
 ```
 
-### Run a realtime agent
+`--customer` 是本地学习选择器，不是身份认证。模型工具不能切换当前客户。
 
-Use a [`RealtimeAgent`](https://openai.github.io/openai-agents-python/realtime/quickstart/) for low-latency, server-side voice and multimodal experiences over WebSocket.
+## 代码与学习路径
 
-```python
-import asyncio
-from agents.realtime import RealtimeAgent, RealtimeRunner
+| 文件 | 内容 |
+| --- | --- |
+| `examples/support_app/__main__.py` | 异步终端循环、会话与命令行 |
+| `examples/support_app/agent.py` | Agent 指令、工具、人工确认与并发锁 |
+| `examples/support_app/store.py` | 客户范围内的查询、分页与工单持久化 |
+| `examples/support_app/import_data.py` | 数据下载、校验与事务导入 |
+| `examples/support_app/test_support.py` | 离线行为和边界测试 |
+| `src/agents/` | 上游 SDK 实现 |
 
-async def main() -> None:
-    agent = RealtimeAgent(name="Assistant", instructions="You are a helpful voice assistant. Keep responses short.")
-    runner = RealtimeRunner(starting_agent=agent)
-    session = await runner.run()
+建议先离线查看，再运行模型对话，沿“用户输入 → Agent → 工具 → SQLite → 模型回答”读代码。`async def` 定义协程函数；`await` 等待可等待对象，在挂起时允许事件循环执行其他任务，并不自动让所有代码并行。
 
-    async with session:
-        await session.send_message("Say hello in one short sentence.")
-        async for event in session:
-            if event.type == "audio":
-                # Forward or play event.audio.data.
-                pass
-            elif event.type == "history_added":
-                print(event.item)
-            elif event.type == "agent_end":
-                break
+## 本地数据与验证
 
-if __name__ == "__main__":
-    asyncio.run(main())
+下载文件、数据库和聊天位于被 Git 忽略的 `.tmp/support-app/`。应用使用 `uci-retail.sqlite` 和 `uci-conversations.sqlite`，不读取旧模拟订单库。
+
+```sh
+python -m unittest examples.support_app.test_support -v
+ruff check examples/support_app
+ruff format --check examples/support_app
+git diff --check
 ```
 
-### Run a voice agent
+单元测试使用隔离的合成样本及脚本化模型，不验证真实 API 回答。开发流程见 [CONTRIBUTING.md](CONTRIBUTING.md)，代码助手规则见 [AGENTS.md](AGENTS.md)。
 
-Use a [`VoicePipeline`](https://openai.github.io/openai-agents-python/voice/quickstart/) to turn audio into text, run an agent workflow, and stream generated speech.
-
-```python
-import asyncio
-
-import numpy as np
-
-from agents import Agent
-from agents.voice import AudioInput, SingleAgentVoiceWorkflow, VoicePipeline
-
-
-async def main() -> None:
-    agent = Agent(name="Assistant", instructions="You are a helpful voice assistant.")
-    pipeline = VoicePipeline(workflow=SingleAgentVoiceWorkflow(agent))
-    audio_input = AudioInput(buffer=np.zeros(24000 * 3, dtype=np.int16))
-
-    result = await pipeline.run(audio_input)
-    async for event in result.stream():
-        if event.type == "voice_stream_event_audio":
-            # Forward or play event.data.
-            pass
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
-```
-
-Explore the [examples](https://github.com/openai/openai-agents-python/tree/main/examples) directory to see the SDK in action, and read our [documentation](https://openai.github.io/openai-agents-python/) for more details.
-
-## Contributing
-
-Please share bug reports and feature requests through [GitHub issues](https://github.com/openai/openai-agents-python/issues).
-Pull requests are limited to repository collaborators; we do not accept pull requests from non-collaborators.
-See [CONTRIBUTING.md](https://github.com/openai/openai-agents-python/blob/main/CONTRIBUTING.md) for the contribution policy and development guide.
-For security vulnerabilities, follow [SECURITY.md](https://github.com/openai/openai-agents-python/blob/main/SECURITY.md).
-
-## Acknowledgements
-
-We'd like to acknowledge the excellent work of the open-source community, especially:
-
-- [Pydantic](https://docs.pydantic.dev/latest/)
-- [Requests](https://github.com/psf/requests)
-- [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk)
-- [Griffe](https://github.com/mkdocstrings/griffe)
-
-This library has these optional dependencies:
-
-- [websockets](https://github.com/python-websockets/websockets)
-- [SQLAlchemy](https://github.com/sqlalchemy/sqlalchemy)
-- [any-llm](https://github.com/mozilla-ai/any-llm) and [LiteLLM](https://github.com/BerriAI/litellm)
-
-We also rely on the following tools to manage the project:
-
-- [uv](https://github.com/astral-sh/uv) and [ruff](https://github.com/astral-sh/ruff)
-- [mypy](https://github.com/python/mypy) and [Pyright](https://github.com/microsoft/pyright)
-- [pytest](https://github.com/pytest-dev/pytest) and [Coverage.py](https://github.com/coveragepy/coveragepy)
-- [MkDocs](https://github.com/squidfunk/mkdocs-material)
-
-We're committed to continuing to build the Agents SDK as an open source framework so others in the community can expand on our approach.
+后续可扩展真实商家 API、登录认证、物流、知识库及客服后台；这些目前尚未实现。SDK 许可证见 [LICENSE](LICENSE)，数据使用前述独立许可。
