@@ -20,7 +20,9 @@ async def confirm(preview: str) -> bool:
 
 
 async def main() -> None:
-    parser = argparse.ArgumentParser(description="English customer support demo")
+    parser = argparse.ArgumentParser(
+        description="Retail Support Agent — English customer support demo"
+    )
     parser.add_argument(
         "--session", default="default", help="Conversation name; reuse it to resume"
     )
@@ -55,7 +57,7 @@ async def main() -> None:
     context = SupportContext(store=store, confirm=confirm)
     agent = build_agent()
     print(
-        f"UCI Online Retail — historical 2010–2011 data, customer {store.customer_id}, currency GBP."
+        f"Retail Support Agent — UCI historical 2010–2011 data, customer {store.customer_id}, currency GBP."
     )
     print(
         "Not live orders. Shipping dates unavailable. Policies and new tickets are learning-only."

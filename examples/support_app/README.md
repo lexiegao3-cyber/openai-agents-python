@@ -1,4 +1,4 @@
-# Customer Support Agent — real historical orders
+# Retail Support Agent — real historical orders
 
 An English-speaking learning application backed by **UCI Online Retail**, a real public transaction dataset from **2010-12-01 to 2011-12-09**. These are historical invoices, not live shopping orders. The application queries an imported SQLite database; OpenAI explains tool results. Fictional seeded orders are no longer used.
 

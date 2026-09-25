@@ -68,7 +68,7 @@ async def list_support_tickets(ctx: RunContextWrapper[SupportContext]) -> list[d
 
 def build_agent() -> Agent[SupportContext]:
     return Agent(
-        name="Historical Retail Support",
+        name="Retail Support Agent",
         instructions=(
             "You are an English-speaking learning assistant over UCI Online Retail historical invoices. "
             "Always respond in English. Be concise. These are real historical 2010–2011 records, not live orders. Cite UCI Online Retail for transaction facts. "

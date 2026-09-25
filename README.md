@@ -1,4 +1,4 @@
-# Customer Support Agent 客服学习应用
+# Retail Support Agent
 
 基于 OpenAI Agents Python SDK 的英文终端客服应用。通过工具查询 SQLite 中的真实公开历史交易，由 OpenAI 模型解释结果，并提供会话记忆和人工确认后创建本地练习工单的流程。
 
@@ -21,8 +21,8 @@
 需要 Python 3.10+、Git 和 uv。已克隆仓库的用户从现有目录开始，不必重复克隆。
 
 ```sh
-git clone https://github.com/lexiegao3-cyber/openai-agents-python.git
-cd openai-agents-python
+git clone https://github.com/lexiegao3-cyber/retail-support-agent.git
+cd retail-support-agent
 uv sync --group dev
 source .venv/bin/activate
 uv pip install -r examples/support_app/requirements-data.txt

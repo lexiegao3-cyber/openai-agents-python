@@ -1,4 +1,4 @@
-# 客服应用开发说明
+# Retail Support Agent 开发说明
 
 本分支以 `examples/support_app/` 为核心，日常开发遵循本文件与 [AGENTS.md](AGENTS.md)，不继承上游的强制多阶段审查和发布流程。
 
