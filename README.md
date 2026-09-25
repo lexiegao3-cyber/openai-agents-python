@@ -1,24 +1,24 @@
 # Retail Support Agent
 
-基于 OpenAI Agents Python SDK 的英文终端客服应用。通过工具查询 SQLite 中的真实公开历史交易，由 OpenAI 模型解释结果，并提供会话记忆和人工确认后创建本地练习工单的流程。
+An English-speaking terminal customer support application built with the OpenAI Agents Python SDK. It queries real public historical transactions in SQLite through tools, uses an OpenAI model to explain the results, and supports conversation memory and local practice tickets with human confirmation.
 
-这是 [OpenAI Agents Python](https://github.com/openai/openai-agents-python) 的学习分支。客服代码位于 `examples/support_app/`；`src/agents/` 和其他示例保留上游 SDK 内容。本应用不是可直接上线的电商客服系统。
+This is a learning fork of [OpenAI Agents Python](https://github.com/openai/openai-agents-python). The support application lives in `examples/support_app/`; `src/agents/` and other examples retain the upstream SDK implementation. This application is not a production-ready commerce support system.
 
-## 功能和边界
+## Features and limitations
 
-- 按客户分页列出历史发票，查询商品、数量、单价、金额与开票时间。
-- 模型用英文回答，依据工具结果，不编造物流和预计送达时间。
-- 按客户及会话名称保存聊天，支持继续对话或清空当前会话。
-- 创建工单前显示具体内容，要求终端输入 `yes`；工单仅保存到本机。
-- 支持不调用模型的离线数据查看与单元测试。
+- List a selected customer's historical invoices with pagination, and look up products, quantities, unit prices, amounts, and invoice dates.
+- Respond in English using tool results, without inventing shipping status or delivery estimates.
+- Save conversations by customer and session name, resume a conversation, or clear the current session.
+- Preview a ticket and require `yes` in the terminal before saving it locally.
+- View imported data and run unit tests without calling a model.
 
-数据来自 [UCI Online Retail](https://archive.ics.uci.edu/dataset/352/online+retail)，涵盖 2010-12-01 至 2011-12-09 的历史交易，币种 GBP。它不是实时订单库，没有物流、付款结算或商家现行政策。取消记录不能证明退款成功。政策文件是虚构练习政策，工单不会通知真实商家。
+The data comes from [UCI Online Retail](https://archive.ics.uci.edu/dataset/352/online+retail), covering historical transactions from 2010-12-01 to 2011-12-09 in GBP. It is not a live order database and does not include shipping, payment settlement, or current merchant policies. Cancellation records do not prove that a refund was completed. The policy file contains fictional training policies, and tickets do not notify a real merchant.
 
-数据引用：Chen, D. (2015). *Online Retail*. UCI Machine Learning Repository. [DOI: 10.24432/C5BW33](https://doi.org/10.24432/C5BW33)，许可为 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)。本应用将工作簿转换为按客户查询的 SQLite 表；转换细节见[应用说明](examples/support_app/README.md)。
+Dataset citation: Chen, D. (2015). *Online Retail*. UCI Machine Learning Repository. [DOI: 10.24432/C5BW33](https://doi.org/10.24432/C5BW33). Licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The application transforms the workbook into customer-scoped SQLite tables; see the [application guide](examples/support_app/README.md) for import details.
 
-## 安装与离线运行
+## Installation and offline walkthrough
 
-需要 Python 3.10+、Git 和 uv。已克隆仓库的用户从现有目录开始，不必重复克隆。
+Requirements: Python 3.10+, Git, and uv. If you already cloned the repository, start from your existing directory and skip the first two commands.
 
 ```sh
 git clone https://github.com/lexiegao3-cyber/retail-support-agent.git
@@ -30,11 +30,11 @@ python -m examples.support_app.import_data
 python -m examples.support_app --demo
 ```
 
-导入器下载约 23 MB 的官方归档，复用已经完成的数据库，不覆盖订单和工单。后续 `uv sync` 可能移除导入专用依赖；需要再次导入时重新安装 `requirements-data.txt`。
+The importer downloads the official archive, approximately 23 MB. It reuses a completed database without overwriting existing invoices or tickets. A later `uv sync` may remove import-only dependencies; reinstall `requirements-data.txt` before importing again if needed.
 
-## 启动英文客服
+## Start the support agent
 
-在同一个终端设置 `OPENAI_API_KEY`。macOS 默认 zsh 可使用隐藏输入，粘贴密钥后按回车：
+Set `OPENAI_API_KEY` in the same terminal. In the default macOS zsh shell, use the following hidden-input prompt, paste your key, and press Enter:
 
 ```zsh
 read -s 'OPENAI_API_KEY?OpenAI API Key: '
@@ -43,9 +43,9 @@ printf '\n'
 python -m examples.support_app
 ```
 
-密钥不要写入代码或提交 Git。在线回答需要可用 API 额度；离线查看与单元测试不需要。在线模式会将聊天和工具结果发给 OpenAI。本应用关闭 tracing，但仍在本地保存对话。
+Do not put the key in source code or commit it to Git. Live responses require available OpenAI API credit or quota; offline viewing and unit tests do not. Live mode sends chat messages and tool results to OpenAI. Tracing is disabled, but conversations are still stored locally.
 
-默认匿名客户为 `12347`。可尝试：
+The default anonymous customer is `12347`. Try these prompts:
 
 ```text
 List my orders.
@@ -56,30 +56,30 @@ Create a support ticket about this invoice.
 List my tickets.
 ```
 
-确认工单时输入 `yes` 才保存，其他输入取消。`exit` 退出；`/new` 清空当前会话。继续命名会话：
+At the ticket confirmation prompt, type `yes` to save; any other input cancels. Type `exit` to quit or `/new` to clear the current conversation. To resume a named session:
 
 ```sh
 python -m examples.support_app --customer 12347 --session learning
 ```
 
-`--customer` 是本地学习选择器，不是身份认证。模型工具不能切换当前客户。
+`--customer` is a local learning selector, not authentication. Model tools cannot switch the selected customer.
 
-## 代码与学习路径
+## Code structure and learning path
 
-| 文件 | 内容 |
+| File | Purpose |
 | --- | --- |
-| `examples/support_app/__main__.py` | 异步终端循环、会话与命令行 |
-| `examples/support_app/agent.py` | Agent 指令、工具、人工确认与并发锁 |
-| `examples/support_app/store.py` | 客户范围内的查询、分页与工单持久化 |
-| `examples/support_app/import_data.py` | 数据下载、校验与事务导入 |
-| `examples/support_app/test_support.py` | 离线行为和边界测试 |
-| `src/agents/` | 上游 SDK 实现 |
+| `examples/support_app/__main__.py` | Async terminal loop, sessions, and CLI |
+| `examples/support_app/agent.py` | Agent instructions, tools, human confirmation, and concurrency lock |
+| `examples/support_app/store.py` | Customer-scoped queries, pagination, and ticket persistence |
+| `examples/support_app/import_data.py` | Data download, validation, and transactional import |
+| `examples/support_app/test_support.py` | Offline behavior and boundary tests |
+| `src/agents/` | Upstream SDK implementation |
 
-建议先离线查看，再运行模型对话，沿“用户输入 → Agent → 工具 → SQLite → 模型回答”读代码。`async def` 定义协程函数；`await` 等待可等待对象，在挂起时允许事件循环执行其他任务，并不自动让所有代码并行。
+Start with the offline walkthrough, then run a model conversation and follow the flow: user input → agent → tool → SQLite → model response. `async def` defines a coroutine function. `await` waits for an awaitable and, when suspended, allows the event loop to run other tasks; it does not automatically make all code run concurrently.
 
-## 本地数据与验证
+## Local data and verification
 
-下载文件、数据库和聊天位于被 Git 忽略的 `.tmp/support-app/`。应用使用 `uci-retail.sqlite` 和 `uci-conversations.sqlite`，不读取旧模拟订单库。
+Downloads, databases, and conversations are stored in the Git-ignored `.tmp/support-app/` directory. The application uses `uci-retail.sqlite` and `uci-conversations.sqlite`; it does not read the old simulated-order database.
 
 ```sh
 python -m unittest examples.support_app.test_support -v
@@ -88,6 +88,6 @@ ruff format --check examples/support_app
 git diff --check
 ```
 
-单元测试使用隔离的合成样本及脚本化模型，不验证真实 API 回答。开发流程见 [CONTRIBUTING.md](CONTRIBUTING.md)，代码助手规则见 [AGENTS.md](AGENTS.md)。
+Unit tests use isolated synthetic fixtures and scripted model responses. They do not validate live API responses. See [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow and [AGENTS.md](AGENTS.md) for coding-agent guidance.
 
-后续可扩展真实商家 API、登录认证、物流、知识库及客服后台；这些目前尚未实现。SDK 许可证见 [LICENSE](LICENSE)，数据使用前述独立许可。
+Future extensions could include authorized merchant APIs, authentication, shipping integrations, a knowledge base, and a support dashboard. These features are not implemented. The SDK license is in [LICENSE](LICENSE); the dataset has the separate license noted above.
