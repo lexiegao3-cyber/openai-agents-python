@@ -1,0 +1,2 @@
+# Importing the official UCI Excel file only; live chat does not import this package.
+openpyxl==3.1.5

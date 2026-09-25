@@ -1550,7 +1550,15 @@ def _unix_local_run_config(
 
 
 @pytest.mark.asyncio
-async def test_runner_merges_sandbox_instructions_and_tools() -> None:
+async def test_runner_merges_sandbox_instructions_and_tools(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Isolate snapshot storage from host permissions and existing user data.
+    snapshot_dir = tmp_path / "snapshots"
+    monkeypatch.setattr(
+        "agents.sandbox.snapshot_defaults.default_local_snapshot_base_dir",
+        lambda **kwargs: snapshot_dir,
+    )
     model = ScriptedModel(steps=[[get_final_output_message("done")]])
     capability_tool = get_function_tool("capability_tool", "ok")
     capability = _RecordingCapability(
@@ -1598,6 +1606,8 @@ async def test_runner_merges_sandbox_instructions_and_tools() -> None:
     assert client.create_kwargs["manifest"] is not manifest
     assert client.create_kwargs["options"] == {"image": "sandbox"}
     assert isinstance(client.create_kwargs["snapshot"], LocalSnapshotSpec)
+    assert client.create_kwargs["snapshot"].base_path == snapshot_dir
+    assert snapshot_dir.is_dir()
 
     assert bool(model.calls)
     assert model.calls[0].system_instructions == (
